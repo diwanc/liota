@@ -35,7 +35,11 @@ import logging
 import os
 import ssl
 import sys
+
 from websocket import create_connection
+
+from liota.lib.utilities.utility import read_liota_config
+from liota.lib.utilities.exponential_backoff import RandomizedExponentialBackoff
 
 log = logging.getLogger(__name__)
 
@@ -47,14 +51,21 @@ class WebSocket():
 
     def __init__(self, url):
         self.url = url
+        self._exp_backoff = RandomizedExponentialBackoff(int(read_liota_config('CONN_RETRY_CFG', 'base_backoff_sec')),
+                                                         int(read_liota_config('CONN_RETRY_CFG', 'max_backoff_sec')),
+                                                         int(read_liota_config('CONN_RETRY_CFG', 'min_conn_stability_sec')))
+
+        self._con_retry_count = int(read_liota_config('CONN_RETRY_CFG', 'retry_count'))
         self.connect_soc()
 
     def connect_soc(self):
         try:
             self.WebSocketConnection(self.url, False)
             log.info("Connection Successful")
+            self._exp_backoff.start_stable_connection_timer()
         except Exception:
             log.exception("WebSocket exception, please check the WebSocket address and try again.")
+            self._exp_backoff.stop_stable_connection_timer()
             sys.exit(0)
 
     # CERTPATH to be taken in consideration later
@@ -90,6 +101,7 @@ class WebSocket():
                     self.on_receive(msg)
         except Exception:
             log.exception("Exception on receiving the response from Server, please check the connection and try again.")
+            self._exp_backoff.stop_stable_connection_timer()
             self.close()
             os._exit(0) # need to revisit this
 
@@ -104,25 +116,30 @@ class WebSocket():
             # Retry logic only for publishing stats, not for request or response calls
             if all(request not in complete_message for request in request_calls):
                 attempts = 1
-                while attempts < 4:
+                #  if _con_retry_count == -1, try infinitely
+                #  else try for _con_retry_count times.
+                while self._con_retry_count == -1 or attempts < self._con_retry_count:
                     try:
                         log.debug("Exception while sending data, applying retry logic.")
+                        #  Applying exponential back-off
+                        self._exp_backoff.backoff()
                         self.connect_soc()
                         log.info("Created New Websocket")
                         log.debug("TX Sending message {0}".format(complete_message))
                         self.ws.send(complete_message)
                         break
                     except:
-                        # Three times retry websocket connection for publishing data
                         log.info("{0} attempt".format(attempts))
                         attempts += 1
-                        if attempts == 4:
+                        if self._con_retry_count != -1 and attempts == self._con_retry_count:
                             # os._exit used as websocket connection is not created even after the fourth retry
                             log.exception("Exception while sending data, please check the connection and try again.")
+                            self._exp_backoff.stop_stable_connection_timer()
                             self.close()
                             os._exit(0)
             else:
                 log.exception("Exception while sending data, please check the connection and try again.")
+                self._exp_backoff.stop_stable_connection_timer()
                 self.close()
                 sys.exit(0)
 
@@ -134,4 +151,5 @@ class WebSocket():
     def close(self):
         if self.ws is not None:
             self.ws.close()
+        self._exp_backoff.stop_stable_connection_timer()
         log.debug("Connection closed, cleanup done")
