@@ -55,34 +55,9 @@ In general, liota can be installed with:
 It requires a Python 2.7 environment already installed.
 
 
-## Liota.conf
-liota.conf provides path to find out various configuration & log files. When initializing, liota does a multi-step search for the configuration file: 
-* Looks in the current working directory '.'
-* User's home directory '~'
-* A LIOTA_CONF environment variable
-* Finally the default location for every installation: /etc/liota/conf.
+## Configuration
+Refer ![config](/config/README.md) for details related to configuration.
 
-Here is the default liota.conf file:
-
-```bash
-[LOG_CFG]
-json_path = /etc/liota/conf/logging.json
-
-[LOG_PATH]
-log_path = /var/log/liota
-
-[UUID_PATH]
-uuid_path = /etc/liota/conf/uuid.ini
-
-[IOTCC_PATH]
-iotcc_path = /etc/liota/conf/iotcc.json
-
-[PKG_CFG]
-pkg_path = /etc/liota/packages
-pkg_msg_pipe = /var/tmp/liota/package_messenger.fifo
-pkg_list = /etc/liota/packages/packages_auto.txt
-```
-Feel free to modify [liota.conf] (https://github.com/vmware/liota/blob/master/config/liota.conf) and [logging.json] (https://github.com/vmware/liota/blob/master/config/logging.json) as appropriate for your testing.
 
 
 ## Examples
