@@ -38,18 +38,18 @@ liota.conf provides path to find out various configuration & log files.  When in
 #### [CONN_RETRY_CFG]
 Configurations specific to Exponential reconnect Back-Off.
 
-* **retry_count - ** Number of attempts to re-establish the connection.  **Dafault value is -1**. i.e., Infinite number of attempts.
-* **base_backoff_sec - ** Time in seconds after which first retry should be attempted. **Default value is 5**.
-* **max_backoff_sec - ** Maximum exponential back-off time in seconds.  **Dafault value is 3600**
-* **min_conn_stability_sec - ** Time in seconds after which connection can be marked as stable and **current_reconnect_backoff** time can be reset back to **base_backoff_sec**.
+* **retry_count -** Number of attempts to re-establish the connection.  **Dafault value is -1**. i.e., Infinite number of attempts.
+* **base_backoff_sec -** Time in seconds after which first retry should be attempted. **Default value is 5**.
+* **max_backoff_sec -** Maximum exponential back-off time in seconds.  **Dafault value is 3600**
+* **min_conn_stability_sec -** Time in seconds after which connection can be marked as stable and **current_reconnect_backoff** time can be reset back to **base_backoff_sec**.
 
 
 #### [PKG_CFG]
 Configurations specific to Package Manager.
 
-* **pkg_path - ** Default packages path.
-* **pkg_msg_pipe - ** Default path for package messenger pipe.
-* **pkg_list - ** Default path to list of packages to load at start-up.
+* **pkg_path -** Default packages path.
+* **pkg_msg_pipe -** Default path for package messenger pipe.
+* **pkg_list -** Default path to list of packages to load at start-up.
 
 
 
